@@ -1,0 +1,13 @@
+{
+  "name": "uploadlink",
+  "version": "1.0.0",
+  "description": "To provide presigned upload link",
+  "main": "app.js",
+  "repository": "https://github.com/awslabs/aws-sam-cli/tree/develop/samcli/local/init/templates/cookiecutter-aws-sam-hello-nodejs",
+  "author": "SAM CLI",
+  "license": "MIT",
+  "dependencies": {
+    "aws-sdk": "^2.646.0",
+    "uuid": "^7.0.2"
+  }
+}
