@@ -51,6 +51,9 @@ const actions = {
                     dispatch('alert/error', error, { root: true });
                 }
             );
+    },
+    reset( {commit} ) {
+        commit('reset');
     }
 };
 
@@ -75,8 +78,6 @@ const mutations = {
     registerSuccess(state, user) {
         state.status = {};
         state.user = user;
-        console.log('Called');
-        console.log(state.user);
     },
     registerFailure(state, error) {
         state.status = {};
@@ -91,6 +92,9 @@ const mutations = {
     checkinFailure(state, error) {
         state.status = {};
     },
+    reset(state) {
+        state.guest = null;
+    }
 };
 
 export const account = {

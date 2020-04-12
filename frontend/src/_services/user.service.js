@@ -94,7 +94,6 @@ function checkin(guestImage) {
                 guest['lastname'] = data.lastname;
                 guest['company'] = data.company;
                 guest['percentage'] = new Intl.NumberFormat('en-IN', { maximumSignificantDigits: 4 }).format(data.percentage);
-                //guest['percentage'] = data.percentage;
                 resolve();
             }).catch(error => { reject(error); });
     }).then(() => {return guest;});

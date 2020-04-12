@@ -1,6 +1,7 @@
 const state = {
     type: null,
-    message: null
+    message: null,
+    eventName: "2020 Unicorn Gym Viet Nam"
 };
 
 const actions = {

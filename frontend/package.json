@@ -1,9 +1,9 @@
 {
-  "name": "vue-vuex-registration-login-example",
+  "name": "vue-vuex-auto-checkin-app",
   "version": "1.0.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/cornflourblue/vue-vuex-registration-login-example.git"
+    "url": "https://github.com/ryuumx/autocheckin-unicorngymvn.git"
   },
   "license": "MIT",
   "scripts": {
