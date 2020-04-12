@@ -21,7 +21,7 @@ const { v4:uuidv4 } = require('uuid');
 // Generate S3 presign URL
 const AWS = require('aws-sdk');
 const s3 = new AWS.S3({signatureVersion: 'v4'});
-const bucketName = "unicorn3000";
+const bucketName = process.env.BUCKETNAME;
 
 exports.lambdaHandler = async (event, context) => {
 

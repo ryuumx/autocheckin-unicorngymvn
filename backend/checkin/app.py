@@ -22,10 +22,10 @@ import base64
 import json
 import time
 
-BUCKET = os.environ['BucketName']
-REKOGNITION_FACE_SIMILARITY_THRESHOLD = int(os.environ['RekognitionFaceSimilarityThreshold'])
-COLLECTION_ID = os.environ['RekognitionCollectionName']
-DYNAMODB_TABLE_NAME = os.environ['DynamoDBTableName']
+BUCKET = os.environ['BUCKETNAME']
+REKOGNITION_FACE_SIMILARITY_THRESHOLD = int(os.environ['REKOGNITIONFACESIMILARITYTHRESHOLD'])
+COLLECTION_ID = os.environ['REKOGNITIONCOLLECTIONNAME']
+DYNAMODB_TABLE_NAME = os.environ['DYNAMOTABLENAME']
 LOG_LEVEL = logging.INFO
 #SEND_ANONYMOUS_DATA = os.environ['SendAnonymousData']
 
@@ -36,9 +36,9 @@ logger = logging.getLogger()
 logger.setLevel(LOG_LEVEL)
 
 
-def generate_response(result, error, firstname, lastname, percentage):
+def generate_response(code, result, error, firstname, lastname, percentage):
     return {
-        'statusCode': 200,
+        'statusCode': code,
         'headers': {"Content-Type": "application/json",
                     "Access-Control-Allow-Origin": "*"},
         'body': json.dumps({'result': result, 'error': error, 'firstname': firstname, 'lastname': lastname, 'percentage' : percentage})
@@ -55,10 +55,11 @@ def update_item(face_id, similarity):
 
 def lambda_handler(event, context):
     # logger.info(event)
-    binary_image = base64.b64decode(event['body'])
+    binary_image = base64.b64decode(event['body']) # get the image in request body
 
     try:
         try:
+            # Search for image in the specified Rekognition collection
             response = rekognition.search_faces_by_image(
                 CollectionId=COLLECTION_ID,
                 Image={'Bytes': binary_image},
@@ -74,8 +75,9 @@ def lambda_handler(event, context):
                 logger.info('No face in Rekognition')
             else:
                 logger.exception(err)
-            return generate_response('FAIL', 'Unable to find face', '', '', 0)
+            return generate_response(400, 'FAIL', 'Rekogntion error - Unable to find face', '', '', 0)
 
+        # found similar face
         face_matches = response['FaceMatches']
         if len(face_matches) > 0:
             face_match = face_matches[0]
@@ -84,6 +86,7 @@ def lambda_handler(event, context):
             face_id = face['FaceId']
 
             try:
+                # search and update DynamoDB table
                 response = dynamodb.get_item(
                     TableName=DYNAMODB_TABLE_NAME,
                     Key={'RekognitionId': {'S': face_id}}
@@ -99,15 +102,15 @@ def lambda_handler(event, context):
                 update_item(face_id, similarity)
             except Exception as err:
                 logger.exception(err)
-                return generate_response('FAIL', 'Unable to querry DB', '', '', 0)
+                return generate_response(400, 'FAIL', 'DynamoDB error - Unable to querry DB', '', '', 0)
 
             logger.info('Above Rekognition Threshold. Similarity: {}'.format(similarity))
-            return generate_response('SUCCESS', 'None', firstname, lastname, similarity)
+            return generate_response(200, 'SUCCESS', 'None', firstname, lastname, similarity)
 
         else:
             logger.info('Similar Faces Not Found')
-            return generate_response('FAIL', 'No matching face', '', '', 0)
+            return generate_response(400, 'FAIL', 'Rekogntion error - No matching face', '', '', 0)
 
     except Exception as err:
         logger.exception(err)
-        return generate_response('FAIL', 'Unable to find similar face', '', '', 0)
+        return generate_response(400, 'FAIL', 'Unable to find similar face', '', '', 0)

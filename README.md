@@ -10,13 +10,28 @@ Can be found in:
 ./backend
 ```
 
-*Manual deployment guide*
-- Deploy each respective folder/function to a Lambda function, with permissions to S3 bucket and Rekognition
-- Deploy API Gateway with 3 endpoints associating with the functions:
-    * checkin (allow OPTIONS & POST)
-    * register (allow OPTIONS & POST)
-    * uploadlink (allow OPTIONS & GET)
-- If neccessary, allow CORS
+*Deployment guide*
+- Prerequisites:
+    * Install SAM CLI from: https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-sam-cli-install.html
+- Change to Backend folder
+- Edit template.yaml and change the following parameters:
+    * BUCKETNAME
+    * REKOGNITIONCOLLECTIONNAME
+    * DYNAMOTABLENAME
+    * REKOGNITIONFACESIMILARITYTHRESHOLD
+- Create the respective services:
+    * S3 bucket (to store uploaded images)
+    * DynamoDB table
+- Run commands:
+    ```bash
+    sam build
+    sam deploy --guided
+    ```
+- Make sure the following settings are set correctly:
+    * RegisterFunction has access to S3, DynamoDB, Rekognition
+    * CheckInFunction has access to DynamoDB, Rekognition
+    * CreateCollectionFunction has access to Rekognition
+- Invoke CreateCollectionFunction to create Rekognition collection
 
 #### Frontend
 *Sources*

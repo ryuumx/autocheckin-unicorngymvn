@@ -1,0 +1,103 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  SAM template for AutoCheckInAPI
+  
+# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
+Globals:
+  Function:
+    Timeout: 6
+    Environment:
+        Variables: # change these variables for a new deployment
+            BUCKETNAME: "unicorn3001"
+            REKOGNITIONCOLLECTIONNAME: "Unicornfaces3001"
+            DYNAMOTABLENAME: "UnicornfaceDB3001"
+            REKOGNITIONFACESIMILARITYTHRESHOLD: 90
+
+Resources:
+    # API Gateway configuration
+    AutoCheckInAPI:
+        Type: AWS::Serverless::Api
+        DependsOn: GetLinkFunction
+        Properties:
+            Name: "AutoCheckInAPI"
+            Cors: 
+                AllowMethods: "'POST, GET'"
+                AllowHeaders: "'*'"
+                AllowOrigin: "'*'"
+            StageName: Prod
+
+    # GET /uploadlink -> generate upload links to upload images for Rekogntion
+    GetLinkFunction:
+        Type: AWS::Serverless::Function 
+        Properties:
+            CodeUri: ./uploadlink/
+            Handler: app.lambdaHandler
+            Runtime: nodejs12.x
+            Events:
+                GetLink:
+                    Type: Api 
+                    Properties:
+                        Path: /uploadlink
+                        Method: get
+                        RestApiId:
+                            Ref: AutoCheckInAPI
+
+    # POST /register -> register images to Rekognition and update DynamoDB table
+    # Permissions needed:
+        # S3
+        # DynamoDB
+        # Rekogntion
+    RegisterFunction:
+        Type: AWS::Serverless::Function
+        Properties:
+            CodeUri: ./register/
+            Handler: app.lambda_handler
+            Runtime: python3.8
+            MemorySize: 512
+            Events:
+                Register:
+                    Type: Api
+                    Properties:
+                        Path: /register
+                        Method: POST
+                        RestApiId:
+                            Ref: AutoCheckInAPI
+
+    # POST /checkin -> submit an image to check if this person is registered or not
+    # Permissions needed:
+        # DynamoDB
+        # Rekogntion
+    CheckInFunction:
+        Type: AWS::Serverless::Function
+        Properties:
+            CodeUri: ./checkin/
+            Handler: app.lambda_handler
+            Runtime: python3.8
+            MemorySize: 512
+            Events:
+                Register:
+                    Type: Api
+                    Properties:
+                        Path: /checkin
+                        Method: POST
+                        RestApiId:
+                            Ref: AutoCheckInAPI
+
+    # GET /createCollection -> create Rekognition collection
+    # Permissions needed:
+        # Rekogntion
+    CreateCollectionFunction:
+        Type: AWS::Serverless::Function
+        Properties:
+            CodeUri: ./createCollection/
+            Handler: app.lambda_handler
+            Runtime: python3.8
+            Events:
+                Register:
+                    Type: Api
+                    Properties:
+                        Path: /createcollection
+                        Method: GET
+                        RestApiId:
+                            Ref: AutoCheckInAPI

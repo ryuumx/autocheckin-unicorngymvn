@@ -4,9 +4,9 @@ import os
 import logging  
 import json
 
-BUCKET = os.environ['BucketName']
-COLLECTION_NAME = os.environ['RekognitionCollectionName']
-DYNAMODB_TABLE_NAME = os.environ['DynamoDBTableName']
+BUCKET = os.environ['BUCKETNAME']
+COLLECTION_NAME = os.environ['REKOGNITIONCOLLECTIONNAME']
+DYNAMODB_TABLE_NAME = os.environ['DYNAMOTABLENAME']
 #LOG_LEVEL = os.environ['LogLevel']
 LOG_LEVEL = logging.INFO
 #SEND_ANONYMOUS_DATA = os.environ['SendAnonymousData']
@@ -19,9 +19,9 @@ logger = logging.getLogger()
 logger.setLevel(LOG_LEVEL)
 
 
-def generate_response(result, error):
+def generate_response(code, result, error):
     return {
-        'statusCode': 200,
+        'statusCode': code,
         'headers': {"Content-Type": "application/json",
                     "Access-Control-Allow-Origin": "*"},
         'body': json.dumps({'result': result, 'error': error})
@@ -79,12 +79,12 @@ def lambda_handler(event, context):
                 CollectionId=COLLECTION_NAME,
                 FaceIds=facelist
             )
-            return generate_response('FAIL', 'Error updating DB')
+            return generate_response(400, 'FAIL', 'DYnamoDB error - Error updating DB')
         
         # If the face image was registered successfully, delete the image from s3.
         #s3.delete_object(Bucket=bucket, Key=key)
         logger.info('Registered a face image successfully.')
-    return generate_response('SUCCESS', 'None')
+    return generate_response(200, 'SUCCESS', 'None')
     
 
     
